@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <title>QuicklyPark</title>
+        <link href="CSS/bootstrap.min.css" rel="stylesheet">
+        <link href="CSS/Mis_estilos.css" rel="stylesheet">
+    </head>
+    <body>
+
+        <div id="app">
+           <nav class="navbar navbar-dark personalizar-barra-nav">
+            <div class="container-fluid">
+                
+                <button id="opciones" class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuOpciones">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="titulo_cabecera">
+                    <span class="navbar-brand m-0 h1" id="titulo">{{ tituloActual }}</span>                
+                </div>
+
+                <div class="collapse navbar-collapse" id="menuOpciones">
+                    <ul class="navbar-nav mt-2">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link btn btn-link" @click="cambiarVista('Administración')">🏠 Administración</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link btn btn-link" @click="cambiarVista('Configuración')">⚙️ Configuración</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link btn btn-link" @click="cambiarVista('Mapa')"></button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container contenido_pagina">
+            <!--PONER LA PERSONALIZACIÓN DE COLORES DE LA CAJA DE INICIAR SESIÓN EN ETIQUETA ADMINISTRACION-->
+            <div class="pagina_administracion" v-if="vistaActual ==='Administración' || vistaActual === 'sesion iniciada' || vistaActual === 'alta parking'">
+                    
+                    <administracion v-if="vistaActual ==='Administración'"
+                    @sesion_iniciada="cambiarVista('sesion iniciada')" class="contenido_administracion">
+                    
+                    </administracion>
+
+                    <opciones_admin 
+                    v-if="vistaActual === 'sesion iniciada'"
+                    @altaparking="cambiarVista('alta parking')"
+                    @estadisticas="cambiarVista('estadisticas')">                    
+                    </opciones_admin>
+
+                    <alta_parking
+                    v-if="vistaActual === 'alta parking'">
+
+                    </alta_parking>
+            </div>
+            <div class="pagina_configuracion" v-if="vistaActual === 'Configuración'">
+                
+            </div>
+        </div>
+
+        </div>
+
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="JS/main_app.js"></script>
+    </body>
+</html>
