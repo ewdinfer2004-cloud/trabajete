@@ -1,4 +1,4 @@
-x x
-xxx
-x  
- xx
+X X
+XXX
+X  
+ XX
