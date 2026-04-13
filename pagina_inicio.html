@@ -28,7 +28,7 @@
                             <button type="button" class="nav-link btn btn-link" @click="cambiarVista('Configuración')">⚙️ Configuración</button>
                         </li>
                         <li class="nav-item">
-                            <button type="button" class="nav-link btn btn-link" @click="cambiarVista('Mapa')"></button>
+                            <button type="button" class="nav-link btn btn-link" @click="cambiarVista('inicio')">Inicio</button>
                         </li>
                     </ul>
                 </div>
@@ -37,23 +37,24 @@
         
         <div class="container contenido_pagina">
             <!--PONER LA PERSONALIZACIÓN DE COLORES DE LA CAJA DE INICIAR SESIÓN EN ETIQUETA ADMINISTRACION-->
-            <div class="pagina_administracion" v-if="vistaActual ==='Administración' || vistaActual === 'sesion iniciada' || vistaActual === 'alta parking'">
+            <div class="pagina_administracion" v-if="vistaActual ==='Administración' || vistaActual === 'sesion iniciada' || vistaActual === 'alta parking' || vistaActual == 'inicio'">
                     
-                    <administracion v-if="vistaActual ==='Administración'"
-                    @sesion_iniciada="cambiarVista('sesion iniciada')" class="contenido_administracion">
+                <mapas v-if="vistaActual == 'inicio'"></mapas>
+
+                <administracion v-if="vistaActual ==='Administración'"
+                @sesion_iniciada="cambiarVista('sesion iniciada')" class="contenido_administracion">
                     
-                    </administracion>
+                </administracion>
 
-                    <opciones_admin 
-                    v-if="vistaActual === 'sesion iniciada'"
-                    @altaparking="cambiarVista('alta parking')"
-                    @estadisticas="cambiarVista('estadisticas')">                    
-                    </opciones_admin>
+                <opciones_admin 
+                v-if="vistaActual === 'sesion iniciada'"
+                @altaparking="cambiarVista('alta parking')"
+                @estadisticas="cambiarVista('estadisticas')">                    
+                </opciones_admin>
 
-                    <alta_parking
-                    v-if="vistaActual === 'alta parking'">
-
-                    </alta_parking>
+                <alta_parking
+                v-if="vistaActual === 'alta parking'">
+                </alta_parking>
             </div>
             <div class="pagina_configuracion" v-if="vistaActual === 'Configuración'">
                 

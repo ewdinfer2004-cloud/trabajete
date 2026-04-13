@@ -103,7 +103,7 @@ const alta_parking = {
                     for(let ind = 0; ind < texto.length; ind++){
                         let caracter = texto[ind];
 
-                        if(caracter.toLowerCase() == 'x'){
+                        if(caracter.toUpperCase() == 'X'){
                             filaPlazas.push({plaza: 'libre'})
                         }
                         else if(caracter == ' '){
@@ -169,24 +169,167 @@ const estadisticas = {
 
 }
 
+const visualizarMapa = {
+    data(){
+        return{
+            listaParking: [],
+            parkingSeleccionado: null,
+            menuAbierto: false,
+            idPlaza: "",
+            matricula: "",
+            tipoCoche: "",
+            selectOcupar: false,
+            selectLiberar: false
+        }
+    },
+
+    template: `
+
+    <div class="">
+    <h3>Seleccione un parking: </h3>
+    <div class="dropdown">
+    <button type="button" @click="menuAbierto = !menuAbierto" class="dropdown-toggle">Seleccionar</button>
+        <ul v-if="menuAbierto" style="list-style-type:none" class="dropdown-menu d-block">
+            <li v-for="(parking, index) in listaParking" :key="'item-' + index">
+            <button class="dropdown-item" @click="parkingSeleccionado = parking; menuAbierto = false"">
+                <strong> {{parking.direccion}} </strong>
+            </button>
+            </li> 
+        </ul>
+    </div>
+    </div>
+
+    <div v-if='parkingSeleccionado'>
+    <p><strong>Horario: {{parkingSeleccionado.horario}} </strong></p>
+    <p><strong>Horario: {{parkingSeleccionado.direccion}} </strong></p>
+        <div class="parking" >
+            <div v-for="(fila, iFilaPlazas) in parkingSeleccionado.plazas" :key="'fila-'+ iFilaPlazas">
+                <div v-for="(plaza, iPlaza) in fila" :key="plaza ? 'plaza-' + plaza.idPlaza : 'nula-' + iFilaPlazas + '-' + iPlaza">
+                
+                    <div v-if="plaza">
+                        <div v-if="plaza.libre === false">
+                            <button v-on:click="idPlaza = plaza.idPlaza; selectLiberar = true" class="plaza ocupada"></button>
+                        </div>
+
+                        <div v-else>
+                            <button v-on:click="idPlaza = plaza.idPlaza; selectOcupar = true" class="plaza libre"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div v-if="selectOcupar == true">
+                <p>Matrícula</p>
+                <input type="text" name="matricula" v-model="matricula"></input>
+                <p>Tipo de vehículo:</p>
+                <input type="text" name="tipoVehiculo" v-model="tipoCoche"></input>
+                <button type="button" class="btn btn-primary" 
+                v-on:click="ocuparPlaza(idPlaza); selectOcupar = false">Ocupar Plaza</button>
+            </div>
+            <div v-if="selectLiberar == true">
+                <button type="button" class="btn btn-primary"
+                v-on:click="liberarPlaza(idPlaza)">Liberar plaza</button>
+            </div>
+
+    </div>
+    `,
+
+    methods: {
+        async leerParkings() {
+            let continuar = true;
+            try{
+                for(let indice = 0; continuar; indice++){
+                    const datosDeBack = await fetch("http://localhost:8081/parking/" + indice);
+
+                    if(datosDeBack.ok){
+                        const respuesta = await datosDeBack.text();
+
+                        if(respuesta){    
+                            const datos = JSON.parse(respuesta);
+                            this.listaParking.push(datos);
+                        }
+                    }
+
+                    else{
+                        continuar = false;
+                        console.log("Ya no hay mas parking en la base de datos", indice);
+                    }
+                }
+            }
+            catch(error){
+                console.error("Error de la conexion", error);
+            }
+        },
+
+        async liberarPlaza(idPlaza){
+            
+            try{
+                const liberar = await fetch("http://localhost:8081/plaza/liberar/" + idPlaza);
+                if(liberar.ok){
+                    this.selectLiberar = false;
+                    alert("Plaza liberada.");
+                    idPlaza = "";
+                }
+                else{
+                    alert("Error liberando la plaza");
+                }
+        }
+        catch(error){
+            console.error("Error de conexión: ", error);
+            alert("Error de conexión en el servidor")
+        }
+        },
+
+        async ocuparPlaza(idPlaza){
+
+            try{
+                const ocuparPlaza = await fetch(`http://localhost:8081/plaza/ocupar/${idPlaza}?matricula=${this.matricula}&idTipoVehiculo=${this.tipoCoche}`);
+
+                    if(ocuparPlaza.ok){
+                        this.selectOcupar = false;
+                        alert("Has ocupado esta plaza");
+                        idPlaza = "";
+                        matricula = "";
+                        tipoCoche = "";
+                    }
+                    else{
+                        alert("No has podido ocupar la plaza");
+                    }
+            
+            }
+            catch(error){
+                console.error("Error de conexión: ", error);
+                alert("Error de conexión.")
+            }
+        }
+    },
+
+    mounted(){
+        this.leerParkings();
+    }
+
+}
+
 createApp({
 
     components:{
         "administracion" : administracion,
         "opciones_admin" : opciones_admin,
-        "alta_parking" : alta_parking
+        "alta_parking" : alta_parking,
+        "mapas": visualizarMapa
     },
 
     setup() {
-        
+        // 1. Estado: Le decimos a Vue que la app empieza en 'inicio'
         const vistaActual = ref('inicio');
 
-        
+        // 2. Función para cambiar la vista cuando se hace clic en el menú
         const cambiarVista = (nuevaVista) => {
             vistaActual.value = nuevaVista;
         };
 
-        
+        // 3. Título dinámico: Vue calcula automáticamente qué título mostrar
         const tituloActual = computed(() => {
             if (vistaActual.value === 'inicio') return 'Visualizar mapa';
             if (vistaActual.value === 'Administración') return 'Acceso administración';
