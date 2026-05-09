@@ -29,6 +29,34 @@ border-style: ridge;
 border-color: rgb(45, 90, 214);
 }
 
+.configuracion{
+    margin-left: 3%;
+}
+
+.espaciado{
+    margin: 5px;
+}
+
+.pequeña{
+    font-size: 10px;
+}
+
+.mediana{
+    font-size: 15px;
+}
+
+.grande{
+    font-size: 20px;
+}
+
+:root {
+  --tamano-base: 15px; 
+}
+
+html, body {
+  font-size: var(--tamano-base) !important;
+}
+
 .parking{
     width: auto;
     height: auto;
