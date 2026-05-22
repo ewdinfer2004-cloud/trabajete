@@ -55,18 +55,6 @@ const visualizarMapa = {
             </div>
             
         </div>
-        <div v-if="selectOcupar == true">
-                <p>Matrícula</p>
-                <input type="text" name="matricula" v-model="matricula"></input>
-                <p>Tipo de vehículo:</p>
-                <input type="text" name="tipoVehiculo" v-model="tipoCoche"></input>
-                <button type="button" class="btn btn-primary" 
-                v-on:click="ocuparPlaza(idPlaza); selectOcupar = false">Ocupar Plaza</button>
-        </div>
-        <div v-if="selectLiberar == true">
-            <button type="button" class="btn btn-primary"
-            v-on:click="liberarPlaza(idPlaza)">Liberar plaza</button>
-        </div>
 
     </div>
     `,
@@ -128,61 +116,6 @@ const visualizarMapa = {
                 console.error("Error de conexión: ", error);
                 alert("Error de conexión en el servidor")
             }
-        },
-
-        async liberarPlaza(idPlaza) {
-            const usuario = localStorage.getItem('usuario');
-            const contrasena = localStorage.getItem('contraseña');
-            const codigoParking = this.parking.idParking;
-
-            try {
-                const liberar = await fetch(`http://localhost:8081/plaza/liberar/${this.idPlaza}?email=${usuario}&clave=${contrasena}`,
-                    { method: 'PATCH' }
-                );
-                if (liberar.ok) {
-                    this.selectLiberar = false;
-                    alert("Plaza liberada.");
-                    idPlaza = "";
-                }
-                else {
-                    alert("Error liberando la plaza");
-                }
-            }
-            catch (error) {
-                console.error("Error de conexión: ", error);
-                alert("Error de conexión en el servidor")
-            }
-        },
-
-        async ocuparPlaza(idPlaza) {
-
-            const usuario = localStorage.getItem('usuario');
-            const contrasena = localStorage.getItem('contraseña');
-            const codigoParking = this.parking.idParking;
-
-            try {
-                const ocuparPlaza = await fetch(`http://localhost:8081/plaza/ocupar/${this.idPlaza}?email=${usuario}&clave=${contrasena}&matricula=${this.matricula}&idTipoVehiculo=${this.tipoCoche}`,
-                    { method: 'PATCH' }
-                );
-
-                if (ocuparPlaza.ok) {
-                    this.selectOcupar = false;
-                    alert("Has ocupado esta plaza");
-                    this.idPlaza = "";
-                    this.matricula = "";
-                    this.tipoCoche = "";
-
-                }
-                else {
-                    alert("No has podido ocupar la plaza");
-                }
-
-            }
-            catch (error) {
-                console.error("Error de conexión: ", error);
-                alert("Error de conexión.")
-            }
-
         },
 
     },
