@@ -31,10 +31,10 @@ const ajustes = {
                 pixeles = 10;
             } 
             else if (tamanoSeleccionado === "mediana") {
-                pixeles = 15;
+                pixeles = 20;
             } 
             else if (tamanoSeleccionado === "grande") {
-                pixeles = 20;
+                pixeles = 40;
             }
 
             document.documentElement.style.setProperty('--tamano-base', pixeles + 'px');

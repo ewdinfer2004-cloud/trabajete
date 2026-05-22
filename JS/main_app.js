@@ -1,17 +1,12 @@
 const { createApp, ref, computed } = Vue;
 
-const estadisticas = {
-
-}
-
-
-
 createApp({
 
     components:{
         "administracion" : administracion,
         "opciones_admin" : opciones_admin,
         "alta_parking" : alta_parking,
+        "estadisticas": estadisticas,
         "mapas": visualizarMapa,
         "ajustes" : ajustes
     },

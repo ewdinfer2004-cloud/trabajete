@@ -1,8 +1,8 @@
 let suscripcionActiva = null;
 
 const visualizarMapa = {
-    data(){
-        return{
+    data() {
+        return {
             listaParking: [],
             parkingSeleccionado: null,
             parking: [],
@@ -18,11 +18,10 @@ const visualizarMapa = {
     },
 
     template: `
-
-    <div class="">
     <h3>Seleccione un parking: </h3>
     <div class="dropdown">
     <button type="button" @click="menuAbierto = !menuAbierto" class="dropdown-toggle">Seleccionar</button>
+    <div class="desplegable">
         <ul v-if="menuAbierto" style="list-style-type:none" class="dropdown-menu d-block">
             <li v-for="parking in listaParking" :key="parking.id">
             <button class="dropdown-item" @click="menuAbierto = false; dibujarParking(parking.id)">
@@ -74,143 +73,121 @@ const visualizarMapa = {
 
     methods: {
 
-        suscribirseAlParking(idParking) {
-            const self = this;
-
-            if (suscripcionActiva) {
-                suscripcionActiva.unsubscribe();
-            }
-
-            if (self.stompClient && self.stompClient.connected) {
-                
-                const rutaCanal = `/topic/parking/${idParking}`;
-                console.log("Suscribiéndose al canal:", rutaCanal);
-
-                suscripcionActiva = self.stompClient.subscribe(rutaCanal, function(messageOutput) {
-                    const parkingActualizado = JSON.parse(messageOutput.body);
-                    console.log("¡Datos recibidos por WebSocket!", parkingActualizado);
-                    
-                    self.parking = parkingActualizado; 
-                });
-            }
-        },
-
         conectarWebSocket() {
             const self = this;
-    
-            const socket = new SockJS('http://localhost:8081/ws ');
-            self.stompClient = StompJs.Stomp.over(socket);
 
-            self.stompClient.debug = function (str) {}; 
-
-            self.stompClient.connect({}, (frame) => {
-                self.stompClient.subscribe('/tema/cambios', (respuesta) => {
-                const idParkingCambiado = respuesta.body;
-                    if (self.idParking) {
-                    self.suscribirseAlParking(self.idParking);
-                    }
+            var socket = new SockJS('http://localhost:8081/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/parking/' + self.idParking, (respuesta) => {
+                    console.log("holaaa")
+                    const parkingActualizado = JSON.parse(respuesta.body);
+                    console.log("¡Datos recibidos por WebSocket!", parkingActualizado);
+                    self.parking = parkingActualizado;
                 });
-            }, (error) => {
-            console.error("Error en la conexión WebSocket: ", error);
-            }); 
+            });
+
         },
 
         async leerParkings() {
             let continuar = true;
-            try{
-                    const datosDeBack = await fetch("http://localhost:8081/parking");
+            try {
+                const datosDeBack = await fetch("http://localhost:8081/parking");
 
-                    if(datosDeBack.ok){
-                        const respuesta = await datosDeBack.json();
-                        this.listaParking = respuesta;
-                    }
-                    else{
-                        continuar = false;
-                        console.log("Ya no hay mas parking en la base de datos", indice);
-                    }
+                if (datosDeBack.ok) {
+                    const respuesta = await datosDeBack.json();
+                    this.listaParking = respuesta;
+                }
+                else {
+                    continuar = false;
+                    console.log("Ya no hay mas parking en la base de datos", indice);
+                }
             }
-            catch(error){
+            catch (error) {
                 console.error("Error de la conexion", error);
             }
         },
 
-        async dibujarParking(idParking){
+        async dibujarParking(idParking) {
 
-            try{
+            try {
                 const obtenerParking = await fetch("http://localhost:8081/parking/" + idParking);
-                if(obtenerParking.ok){
+                if (obtenerParking.ok) {
                     const parkingJson = await obtenerParking.json();
                     this.parking = parkingJson;
                     this.idParking = idParking;
-                    this.suscribirseAlParking(idParking);
+
+                    this.conectarWebSocket();
                 }
-                else{
+                else {
                     alert("Error mostrando parking.")
                 }
             }
-            catch(error){
+            catch (error) {
                 console.error("Error de conexión: ", error);
                 alert("Error de conexión en el servidor")
             }
         },
 
-        async liberarPlaza(idPlaza){
-            
-            try{
-                const liberar = await fetch("http://localhost:8081/plaza/liberar/" + idPlaza);
-                if(liberar.ok){
+        async liberarPlaza(idPlaza) {
+            const usuario = localStorage.getItem('usuario');
+            const contrasena = localStorage.getItem('contraseña');
+            const codigoParking = this.parking.idParking;
+
+            try {
+                const liberar = await fetch(`http://localhost:8081/plaza/liberar/${this.idPlaza}?email=${usuario}&clave=${contrasena}`,
+                    { method: 'PATCH' }
+                );
+                if (liberar.ok) {
                     this.selectLiberar = false;
                     alert("Plaza liberada.");
                     idPlaza = "";
                 }
-                else{
+                else {
                     alert("Error liberando la plaza");
                 }
-        }
-        catch(error){
-            console.error("Error de conexión: ", error);
-            alert("Error de conexión en el servidor")
-        }
+            }
+            catch (error) {
+                console.error("Error de conexión: ", error);
+                alert("Error de conexión en el servidor")
+            }
         },
 
-        async ocuparPlaza(idPlaza){
+        async ocuparPlaza(idPlaza) {
 
             const usuario = localStorage.getItem('usuario');
             const contrasena = localStorage.getItem('contraseña');
             const codigoParking = this.parking.idParking;
 
-            try{
-                const ocuparPlaza = await fetch(`http://localhost:8081/plaza/ocupar/${this.idPlaza}?email=${usuario}&clave=${contrasena}&matricula=${this.matricula}&idTipoVehiculo=${this.tipoCoche}`, 
-                    {method: 'PATCH'}
+            try {
+                const ocuparPlaza = await fetch(`http://localhost:8081/plaza/ocupar/${this.idPlaza}?email=${usuario}&clave=${contrasena}&matricula=${this.matricula}&idTipoVehiculo=${this.tipoCoche}`,
+                    { method: 'PATCH' }
                 );
 
-                    if(ocuparPlaza.ok){
-                        this.selectOcupar = false;
-                        alert("Has ocupado esta plaza");
-                        this.idPlaza = "";
-                        this.matricula = "";
-                        this.tipoCoche = "";
+                if (ocuparPlaza.ok) {
+                    this.selectOcupar = false;
+                    alert("Has ocupado esta plaza");
+                    this.idPlaza = "";
+                    this.matricula = "";
+                    this.tipoCoche = "";
 
-                    }
-                    else{
-                        alert("No has podido ocupar la plaza");
-                    }
-            
+                }
+                else {
+                    alert("No has podido ocupar la plaza");
+                }
+
             }
-            catch(error){
+            catch (error) {
                 console.error("Error de conexión: ", error);
                 alert("Error de conexión.")
             }
 
         },
 
-        mounted() {
-        this.leerParkings();
-        this.conectarWebSocket();
-    }
     },
 
-    mounted(){
+    mounted() {
         this.leerParkings();
     }
 
